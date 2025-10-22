@@ -1,0 +1,269 @@
+{
+  "name": "My workflow 4",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "7185e960-8d09-4cdd-81be-6fd46ae5041d",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -680,
+        -80
+      ],
+      "id": "e92ed3ec-8c78-4280-b9a1-c6796ee71a9f",
+      "name": "Webhook",
+      "webhookId": "7185e960-8d09-4cdd-81be-6fd46ae5041d"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "dd50a58a-7bfa-44ca-8926-2cb71c269d04",
+              "leftValue": "={{ $json.body.user.email }}",
+              "rightValue": "={{ $json.body.user.email }}",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [
+        -500,
+        -200
+      ],
+      "id": "b035f2d5-3e6d-4602-97f4-df0a465bfca8",
+      "name": "Filter"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "calendar": {
+          "__rl": true,
+          "value": "ellie@juliangoldie.com",
+          "mode": "list",
+          "cachedResultName": "ellie@juliangoldie.com"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        -220,
+        100
+      ],
+      "id": "dc568003-8a7b-497c-8a7e-c7aad3dd1397",
+      "name": "Google Calendar",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "SORFtz8iVBanT8mc",
+          "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "google/gemini-2.0-flash-lite-preview-02-05:free",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        -360,
+        0
+      ],
+      "id": "e6cdf398-b61f-4a01-b468-552018592de6",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "DDSUqUXO8n872K8N",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "draft",
+        "subject": "={{ $json.output }}",
+        "message": "={{ $('Email Body AI Agent').item.json.output }}",
+        "options": {
+          "sendTo": "={{ $('Webhook').item.json.body.email }}"
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        480,
+        -280
+      ],
+      "id": "79432f27-f99b-485a-b9cb-511c7c719bc5",
+      "name": "Gmail",
+      "webhookId": "d6d1925c-ff31-4b46-bdb8-2b3542c56535",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "cO65iZr9IqPZFLom",
+          "name": "Ellie's Inbox"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "google/gemini-2.0-flash-lite-preview-02-05:free",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        100,
+        -80
+      ],
+      "id": "93da5b8a-2d47-44c9-be5e-d4e6727212eb",
+      "name": "OpenRouter Chat Model1",
+      "credentials": {
+        "openRouterApi": {
+          "id": "DDSUqUXO8n872K8N",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Write a personal email:\n\nFull Name: {{ $json.body.full_name }}\nEmail: {{ $json.body.email }}\nWebsite:  {{ $json.body.website }}\nHow I can help you: {{ $json.body['How can I help you with SEO?'][0] }}\nTimezone: {{ $('Webhook').item.json.body.timezone }}\n\nSearch the Google Calendar Tool for their appointment too > If you can find it, specify the data/time of the call to reconfirm it.",
+        "options": {
+          "systemMessage": "- You are Ellie, our sales rep, for Goldie Agency\n- Goldie Agency is an SEO link building agency, and this is an appointment about getting more leads, traffic and sales with SEO\n- It's a custom SEO gameplan\n- Based on the application from our sales prospect, write a very personalized email that checks the lead is attending the sales call + makes it easy for them to confirm\n- Short, to the point, no fluff, conversational, polite, friendly, good vibes\n- No email signature/best etc. \n- Go easy on the exclamation marks - use them sparingly\n- Make it very personal + explain you're working on analyzing their website asap"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        -300,
+        -240
+      ],
+      "id": "49293c56-1ac3-4e94-a503-f786cecd312f",
+      "name": "Email Body AI Agent"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Create a subject line for this email:\n{{ $json.output }}\n\nOnly give me 1 subject line\nMake it relevant to the email above\nMake it very personalized + short\nInclude their website in the email too",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        120,
+        -280
+      ],
+      "id": "a94ce1a5-fa65-4f04-8061-060262bf6308",
+      "name": "Email Subject Line Agent"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Filter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter": {
+      "main": [
+        [
+          {
+            "node": "Email Body AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Calendar": {
+      "ai_tool": [
+        [
+          {
+            "node": "Email Body AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Email Body AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Email Subject Line Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email Body AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Email Subject Line Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email Subject Line Agent": {
+      "main": [
+        [
+          {
+            "node": "Gmail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "66cc6f04-7591-4b81-af31-a7ea7135bd52",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "c833001d83e394f417e9994028268b115ece912f85d62f09d751232fea87b89e"
+  },
+  "id": "Z2r07DxIQxTAaGgE",
+  "tags": []
+}
