@@ -1,0 +1,230 @@
+{
+  "name": "🚀 Social Media Content Generator & Publisher for LinkedIn and X",
+  "nodes": [
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.0-flash",
+        "options": {}
+      },
+      "id": "e5a750b7-1547-402e-9159-de46177343df",
+      "name": "Google Gemini Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "position": [
+        -480,
+        340
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "authentication": "basicAuth",
+        "formTitle": "post",
+        "formDescription": "post",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "post title"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "e056b551-4de4-49e6-8b31-d622690fca61",
+      "name": "Receive Post Title",
+      "type": "n8n-nodes-base.formTrigger",
+      "position": [
+        -680,
+        120
+      ],
+      "webhookId": "4d921ee9-7668-4133-8750-4e35f9fc2353",
+      "typeVersion": 2.2
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=\nwrite min 50 word about this topic '{{ $json[\"post title\"] }}'\nfor Linkedin and X platform separately",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "id": "680a97b0-7179-4a3f-9639-210585d9ab7f",
+      "name": "Generate AI Content",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "position": [
+        -480,
+        120
+      ],
+      "typeVersion": 1.7
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"event_name\": {\n      \"type\": \"string\"\n    },\n    \"event_description\": {\n      \"type\": \"string\"\n    },\n    \"platform_posts\": {\n      \"type\": \"object\",\n      \"properties\": {\n        \"LinkedIn\": {\n          \"type\": \"object\",\n          \"properties\": {\n            \"post\": {\n              \"type\": \"string\"\n            },\n            \"hashtags\": {\n              \"type\": \"array\",\n              \"items\": {\n                \"type\": \"string\"\n              }\n            },\n            \"call_to_action\": {\n              \"type\": \"string\"\n            }\n          }\n        },\n        \"Twitter\": {\n          \"type\": \"object\",\n          \"properties\": {\n            \"post\": {\n              \"type\": \"string\"\n            },\n            \"hashtags\": {\n              \"type\": \"array\",\n              \"items\": {\n                \"type\": \"string\"\n              }\n            },\n            \"character_limit\": {\n              \"type\": \"integer\"\n            }\n          }\n        }\n      }\n    },\n    \"additional_notes\": {\n      \"type\": \"string\"\n    }\n  }\n}"
+      },
+      "id": "fe69ca1c-3cf3-4ee9-b92c-c9575afbd408",
+      "name": "Format AI Output",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "position": [
+        -320,
+        380
+      ],
+      "typeVersion": 1.2
+    },
+    {
+      "parameters": {
+        "text": "={{ $json.output.platform_posts.Twitter.post }}",
+        "additionalFields": {}
+      },
+      "id": "2ec8c7ea-9908-4a24-b3ba-09ba9edf00f5",
+      "name": "Post to X",
+      "type": "n8n-nodes-base.twitter",
+      "position": [
+        -100,
+        20
+      ],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "person": "-HtNhNKSsE",
+        "text": "={{ $json.output.platform_posts.LinkedIn.post }}",
+        "additionalFields": {}
+      },
+      "id": "4cfc0856-41f9-49c0-a97b-f13379536a77",
+      "name": "Post to LinkedIn",
+      "type": "n8n-nodes-base.linkedIn",
+      "position": [
+        -100,
+        240
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "id": "964e293d-ec58-4fe0-a2b7-a501677d4f94",
+      "name": "Append Linkedin And X Publishing Responses",
+      "type": "n8n-nodes-base.merge",
+      "position": [
+        180,
+        140
+      ],
+      "typeVersion": 3
+    },
+    {
+      "parameters": {
+        "operation": "completion",
+        "completionTitle": "Your post has been successfully shared",
+        "completionMessage": "=🔗 View your posts:\n\nX (Twitter): \n[https://x.com/x/status/{{ $json.id }}]\n\nLinkedIn:\n[https://www.linkedin.com/feed/update/{{ $json.urn }}]",
+        "options": {}
+      },
+      "id": "25913d50-a7ac-4c8d-bf5c-b99760207d03",
+      "name": "Show Confirmation",
+      "type": "n8n-nodes-base.form",
+      "position": [
+        400,
+        140
+      ],
+      "webhookId": "9c0b2419-aff6-40dd-95f7-5dfd0a88d46c",
+      "typeVersion": 1
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Post to X": {
+      "main": [
+        [
+          {
+            "node": "Append Linkedin And X Publishing Responses",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format AI Output": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Generate AI Content",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Post to LinkedIn": {
+      "main": [
+        [
+          {
+            "node": "Append Linkedin And X Publishing Responses",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Receive Post Title": {
+      "main": [
+        [
+          {
+            "node": "Generate AI Content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate AI Content": {
+      "main": [
+        [
+          {
+            "node": "Post to X",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Post to LinkedIn",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Generate AI Content",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append Linkedin And X Publishing Responses": {
+      "main": [
+        [
+          {
+            "node": "Show Confirmation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "332b75db-f8cc-4964-b3e8-090662c1ba53",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "e2fbeebc0d504d0029f03119d347a84569ac4670c197ea3d6ef93f4dc3bc9ea2"
+  },
+  "id": "5APiR6kPRNDlGpNr",
+  "tags": []
+}
